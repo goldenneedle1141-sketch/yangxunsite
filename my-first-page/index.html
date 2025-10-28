@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>杨洵的网页</title>
+	<!-- 极简三栏个人主页 + 背景照片漂浮层（UTF-8 防止中文乱码） -->
+	<style>
+		/* -------- 主题与基础 -------- */
+		:root {
+			--bg1: #0f172a;
+			--bg2: #1e293b;
+			--card: rgba(255,255,255,0.06);
+			--card-hover: rgba(255,255,255,0.12);
+			--text: #e5e7eb;
+			--subtext: #94a3b8;
+			--accent: #60a5fa;
+			--shadow: 0 10px 30px rgba(0,0,0,0.25);
+			--radius: 16px;
+		}
+		* { box-sizing: border-box; }
+		html, body { height: 100%; margin: 0; }
+		body {
+			font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "PingFang SC", "Microsoft Yahei", Arial, sans-serif;
+			background: radial-gradient(1200px 600px at 10% 10%, #0b1220, transparent 60%),
+			            radial-gradient(1000px 500px at 90% 10%, #0b1b2a, transparent 60%),
+			            linear-gradient(180deg, var(--bg1), var(--bg2));
+			color: var(--text);
+			letter-spacing: 0.2px;
+			overflow-x: hidden;
+		}
+
+		/* -------- 背景照片漂浮层（在内容之下）-------- */
+		.bg-photos {
+			position: fixed;
+			inset: 0;
+			pointer-events: none; /* 不影响前景点击 */
+			z-index: 0; /* 在最底层 */
+			opacity: 0.75; /* 全局透明度微调 */
+		}
+		.bg-photo {
+			position: absolute;
+			border-radius: 18px;
+			box-shadow: 0 25px 60px rgba(0,0,0,0.45);
+			filter: saturate(1.05) contrast(1.02);
+			opacity: 0.18; /* 单图透明度，保证不干扰内容可读性 */
+			mix-blend-mode: screen; /* 与背景柔和混合 */
+			transform-origin: center;
+			animation: floatY 18s ease-in-out infinite;
+		}
+		.bg-photo img {
+			display: block;
+			width: 100%;
+			height: 100%;
+			object-fit: cover;
+			border-radius: inherit;
+		}
+		/* 三张照片的尺寸与起始位置（错落分布） */
+		.bg-photo.p1 {
+			top: 6%;
+			left: 5%;
+			width: 360px;
+			height: 500px;
+			transform: rotate(-6deg);
+			animation-delay: 0s;
+		}
+		.bg-photo.p2 {
+			top: 10%;
+			right: -40px;
+			width: 420px;
+			height: 320px;
+			transform: rotate(7deg);
+			animation-delay: 4s;
+		}
+		.bg-photo.p3 {
+			bottom: -30px;
+			left: 50%;
+			transform: translateX(-50%) rotate(3deg);
+			width: 360px;
+			height: 500px;
+			animation-delay: 8s;
+		}
+		/* 轻微上下漂浮与透明度呼吸 */
+		@keyframes floatY {
+			0%   { transform: translateY(0)        rotate(var(--rot, 0deg)); opacity: 0.16; }
+			50%  { transform: translateY(-14px)    rotate(calc(var(--rot, 0deg) + 0.6deg)); opacity: 0.22; }
+			100% { transform: translateY(0)        rotate(var(--rot, 0deg)); opacity: 0.16; }
+		}
+		/* 小屏下弱化/隐藏，保证阅读性 */
+		@media (max-width: 900px) {
+			.bg-photo { opacity: 0.12; filter: blur(0.3px); }
+			.bg-photo.p1 { width: 260px; height: 360px; left: -20px; }
+			.bg-photo.p2 { width: 300px; height: 230px; right: -60px; }
+			.bg-photo.p3 { width: 360px; height: 240px; bottom: -50px; }
+		}
+		@media (max-width: 600px) {
+			.bg-photos { display: none; } /* 极小屏直接隐藏，简洁干净 */
+		}
+
+		/* -------- 前景内容容器（在照片之上）-------- */
+		.container {
+			position: relative;
+			z-index: 1; /* 置于背景照片上方 */
+			max-width: 1100px;
+			margin: 0 auto;
+			padding: 48px 20px 64px;
+		}
+		.header { text-align: center; margin-bottom: 36px; }
+		.name {
+			font-size: 40px;
+			font-weight: 800;
+			letter-spacing: 1px;
+			margin: 0 0 8px;
+			background: linear-gradient(90deg, #93c5fd, #c084fc, #fca5a5);
+			-webkit-background-clip: text;
+			background-clip: text;
+			color: transparent;
+		}
+		.tagline { margin: 0; color: var(--subtext); font-size: 16px; }
+		.grid {
+			display: grid;
+			grid-template-columns: repeat(3, 1fr);
+			gap: 18px;
+		}
+		.card {
+			background: var(--card);
+			border: 1px solid rgba(255,255,255,0.08);
+			border-radius: var(--radius);
+			backdrop-filter: blur(6px);
+			box-shadow: var(--shadow);
+			padding: 20px 18px;
+			transition: transform .25s ease, background .25s ease, border-color .25s ease;
+		}
+		.card:hover {
+			transform: translateY(-4px);
+			background: var(--card-hover);
+			border-color: rgba(255,255,255,0.18);
+		}
+		.card h3 {
+			margin: 0 0 12px;
+			font-size: 18px;
+			font-weight: 700;
+			color: #bfdbfe;
+			display: inline-flex;
+			align-items: center;
+			gap: 8px;
+		}
+		.list { margin: 0; padding-left: 16px; color: var(--text); }
+		.list li { margin: 8px 0; line-height: 1.7; }
+		.footer { text-align: center; margin-top: 28px; color: var(--subtext); font-size: 12px; opacity: .9; }
+
+		/* 自适应：中小屏改为两列/一列 */
+		@media (max-width: 900px) { .grid { grid-template-columns: 1fr 1fr; } }
+		@media (max-width: 600px) {
+			.grid { grid-template-columns: 1fr; }
+			.name { font-size: 32px; }
+		}
+	</style>
+</head>
+<body>
+	<!-- 背景照片漂浮层：把 src 换成你的三张照片路径/链接 -->
+	<div class="bg-photos" aria-hidden="true">
+		<div class="bg-photo p1" style="--rot:-6deg;">
+			<img src="images/photo1.jpg" alt="background portrait 1" loading="lazy" />
+		</div>
+		<div class="bg-photo p2" style="--rot:7deg;">
+			<img src="images/photo2.jpg" alt="background portrait 2" loading="lazy" />
+		</div>
+		<div class="bg-photo p3" style="--rot:3deg;">
+			<img src="images/photo3.jpg" alt="background portrait 3" loading="lazy" />
+		</div>
+	</div>
+
+	<!-- 前景内容 -->
+	<div class="container">
+		<div class="header">
+			<h1 class="name">杨洵</h1>
+			<p class="tagline">这里是杨洵的网页 · 专注金融 × AI</p>
+		</div>
+
+		<div class="grid">
+			<!-- 左：基本信息 -->
+			<section class="card">
+				<h3>基本信息</h3>
+				<ul class="list">
+					<li>硕士</li>
+					<li>金融背景</li>
+					<li>AI 探索者</li>
+				</ul>
+			</section>
+
+			<!-- 中：项目背景 -->
+			<section class="card">
+				<h3>项目背景</h3>
+				<ul class="list">
+					<li>西南管道</li>
+					<li>蓝科锂业</li>
+					<li>川投峨铁</li>
+				</ul>
+			</section>
+
+			<!-- 右：技能 -->
+			<section class="card">
+				<h3>技能</h3>
+				<ul class="list">
+					<li>AI 编程</li>
+					<li>数据分析</li>
+					<li>报告撰写</li>
+				</ul>
+			</section>
+		</div>
+
+		<div class="footer">© 2025 Yang Xun</div>
+	</div>
+</body>
+</html>
